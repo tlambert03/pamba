@@ -135,13 +135,13 @@ def conda_install(requires: List[str], extra_args: Optional[List[str]] = None) -
         binary = "conda"
     else:
         raise RuntimeError("Neither conda nor mamba available on PATH")
-    check_call([binary, "install"] + extra_args + requires)
+    check_call([binary, "install"] + extra_args + [repr(r) for r in requires])
 
 
 def pip_install(requires: List[str], extra_args: Optional[List[str]] = None) -> None:
     if extra_args is None:
         extra_args = []
-    check_call(["pip", "install"] + extra_args + requires)
+    check_call(["pip", "install"] + extra_args + [repr(r) for r in requires])
 
 
 def install(args: Namespace, conda_args: Optional[List[str]] = None) -> None:
@@ -152,7 +152,7 @@ def install(args: Namespace, conda_args: Optional[List[str]] = None) -> None:
         _pth, _, _extras = str(args.editable[0]).partition("[")
         pth = Path(_pth).expanduser().absolute()
         extras = [x.strip() for x in _extras.rstrip("]").split(",") if x.strip()]
-        with yaspin(text=f"Checking requirements for {pth.name} ...", color="yellow"):
+        with yaspin(text=f"Collecting requirements for {pth.name} ...", color="yellow"):
             requires = get_requires(pth)
     with yaspin(text="Converting requirements to conda ...", color="yellow"):
         requires.extend(args.requirements)
