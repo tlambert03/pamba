@@ -9,13 +9,13 @@ from argparse import ArgumentParser, Namespace
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from subprocess import check_call
-from typing import List, Optional, Sequence, Tuple, Union, cast
+from typing import List, Optional, Sequence, Tuple, Union
 from urllib import error, request
-from yaspin import yaspin
 
 import toml
 from build.util import project_wheel_metadata
 from grayskull.strategy import pypi
+from yaspin import yaspin
 
 
 def _get_pep517_requires_dist(srcdir: Path) -> List[str]:
