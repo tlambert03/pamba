@@ -135,13 +135,13 @@ def conda_install(requires: List[str], extra_args: Optional[List[str]] = None) -
         binary = "conda"
     else:
         raise RuntimeError("Neither conda nor mamba available on PATH")
-    check_call([binary, "install"] + extra_args + [repr(r) for r in requires])
+    check_call([binary, "install"] + extra_args + requires)
 
 
 def pip_install(requires: List[str], extra_args: Optional[List[str]] = None) -> None:
     if extra_args is None:
         extra_args = []
-    check_call(["pip", "install"] + extra_args + [repr(r) for r in requires])
+    check_call(["pip", "install"] + extra_args + requires)
 
 
 def install(args: Namespace, conda_args: Optional[List[str]] = None) -> None:
@@ -171,10 +171,13 @@ def install(args: Namespace, conda_args: Optional[List[str]] = None) -> None:
                 print(f"  - {req}")
     else:
         if from_conda:
+            print("installing conda deps")
             conda_install(from_conda, extra_args=conda_args)
         if from_pip:
+            print("installing remaining pip deps")
             pip_install(from_pip)
         if args.editable and pth:
+            print("installing package in editable mode")
             pip_install([str(pth)], ["-e"])
 
 
