@@ -9,9 +9,9 @@
 Installl pyproject/setup.cfg deps from mamba
 
 ```sh
-conda install pamba
-# or
 pip install pamba
+# or
+conda install pamba
 ```
 
 install local path in pip editable mode, but install dependencies with mamba/conda
