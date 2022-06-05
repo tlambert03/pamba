@@ -175,9 +175,9 @@ def install(args: Namespace, conda_args: Optional[List[str]] = None) -> None:
             conda_install(from_conda, extra_args=conda_args)
         if from_pip:
             print("installing remaining pip deps")
-            pip_install(from_pip)
+            pip_install([r.replace(" ", "") for r in from_pip])
         if args.editable and pth:
-            print("installing package in editable mode")
+            print(f"installing {pth} in editable mode")
             pip_install([str(pth)], ["-e"])
 
 
