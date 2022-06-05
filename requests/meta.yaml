@@ -1,0 +1,47 @@
+{% set name = "requests" %}
+{% set version = "2.27.1" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+build:
+  skip: true  # [py==30 or py==31 or py==32 or py==33 or py==34 or py==35]
+  script: {{ PYTHON }} -m pip install . -vv
+  number: 0
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/requests-{{ version }}.tar.gz
+  sha256: 68d7c56fd5a8999887728ef304a6d12edc7be74f1cfa47714fc8b414525c9a61
+
+requirements:
+  host:
+    - pip
+    - pytest
+    - python
+  run:
+    - certifi >=2017.4.17
+    - chardet >=3.0.2,<5  # [py<3]
+    - charset-normalizer >=2.0.0  # [py>=3],==2.0.*
+    - idna >=2.5,<4  # [py>=3]
+    - python
+    - urllib3 >=1.21.1,<1.27
+
+test:
+  imports:
+    - requests
+  commands:
+    - pip check
+  requires:
+    - pip
+
+about:
+  home: https://requests.readthedocs.io
+  summary: Python HTTP for Humans.
+  dev_url: https://github.com/psf/requests
+  license: Apache-2.0
+  license_file: LICENSE
+
+extra:
+  recipe-maintainers:
+    - tlambert03
