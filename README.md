@@ -7,3 +7,19 @@
 [![codecov](https://codecov.io/gh/tlambert03/pamba/branch/main/graph/badge.svg)](https://codecov.io/gh/tlambert03/pamba)
 
 Installl pyproject/setup.cfg deps from mamba
+
+```sh
+mamba install pamba
+```
+
+install local path in pip editable mode, but install dependencies with mamba/conda
+
+```sh
+pamba install -e local/path[extraA,extraB]
+```
+
+convert pypi package names to conda names and install with mamba/conda
+
+```sh
+pamba install packageA packageB
+```
