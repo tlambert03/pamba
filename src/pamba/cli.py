@@ -9,7 +9,7 @@ from argparse import ArgumentParser, Namespace
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from subprocess import check_call
-from typing import List, Optional, Sequence, Tuple, Union
+from typing import Collection, List, Optional, Sequence, Tuple, Union
 from urllib import error, request
 
 import toml
@@ -144,23 +144,29 @@ def pip_install(requires: List[str], extra_args: Optional[List[str]] = None) -> 
     check_call(["pip", "install"] + extra_args + requires)
 
 
-def install(args: Namespace, conda_args: Optional[List[str]] = None) -> None:
+def install(
+    requirements: Collection[str],
+    editable: Optional[str] = None,
+    dry_run: bool = False,
+    conda_args: Optional[List[str]] = None,
+    _conda_install=conda_install,
+) -> None:
     extras = []
     requires = []
     pth = None
-    if args.editable:
-        _pth, _, _extras = str(args.editable[0]).partition("[")
+    if editable:
+        _pth, _, _extras = str(editable[0]).partition("[")
         pth = Path(_pth).expanduser().absolute()
         extras = [x.strip() for x in _extras.rstrip("]").split(",") if x.strip()]
         with yaspin(text=f"Collecting requirements for {pth.name} ...", color="yellow"):
             requires = get_requires(pth)
     with yaspin(text="Converting requirements to conda ...", color="yellow"):
-        requires.extend(args.requirements)
+        requires.extend(requirements)
         requires = clean_requires(requires, extras)
         requires = condafy_reqs(requires)
     with yaspin(text="Checking conda availability ...", color="yellow"):
         from_conda, from_pip = check_conda_availability(requires)
-    if args.dry_run:
+    if dry_run:
         if from_conda:
             print("Would install from conda:")
             for req in from_conda:
@@ -172,13 +178,22 @@ def install(args: Namespace, conda_args: Optional[List[str]] = None) -> None:
     else:
         if from_conda:
             print("installing conda deps")
-            conda_install(from_conda, extra_args=conda_args)
+            _conda_install(from_conda, extra_args=conda_args)
         if from_pip:
             print("installing remaining pip deps")
             pip_install([r.replace(" ", "") for r in from_pip])
-        if args.editable and pth:
+        if editable and pth:
             print(f"installing {pth} in editable mode")
             pip_install([str(pth)], ["-e"])
+
+
+def _do_install(args: Namespace, conda_args: Optional[List[str]] = None) -> None:
+    return install(
+        args.requirements,
+        editable=args.editable[0] if args.editable else None,
+        dry_run=args.dry_run,
+        conda_args=conda_args,
+    )
 
 
 def parse_args() -> None:
@@ -190,7 +205,7 @@ def parse_args() -> None:
     _install.add_argument(
         "-n", "--dry-run", action="store_true", help="dont install anything"
     )
-    _install.set_defaults(func=install)
+    _install.set_defaults(func=_do_install)
     args, conda_args = parser.parse_known_args()
     if hasattr(args, "func"):
         args.func(args, conda_args)
