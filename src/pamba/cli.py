@@ -167,7 +167,7 @@ def install(args: Namespace, conda_args: Optional[List[str]] = None) -> None:
                 print(f"  - {req}")
         if from_pip:
             print("Would install from pip:")
-            for req in from_conda:
+            for req in from_pip:
                 print(f"  - {req}")
     else:
         if from_conda:
