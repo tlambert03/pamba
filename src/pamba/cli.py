@@ -8,7 +8,7 @@ import sys
 from argparse import ArgumentParser, Namespace
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from subprocess import check_call
+from subprocess import run
 from typing import List, Optional, Sequence, Tuple, Union
 from urllib import error, request
 
@@ -135,13 +135,13 @@ def conda_install(requires: List[str], extra_args: Optional[List[str]] = None) -
         binary = "conda"
     else:
         raise RuntimeError("Neither conda nor mamba available on PATH")
-    check_call([binary, "install"] + extra_args + requires)
+    run([binary, "install"] + extra_args + requires)
 
 
 def pip_install(requires: List[str], extra_args: Optional[List[str]] = None) -> None:
     if extra_args is None:
         extra_args = []
-    check_call(["pip", "install"] + extra_args + requires)
+    run(["pip", "install"] + extra_args + requires)
 
 
 def install(args: Namespace, conda_args: Optional[List[str]] = None) -> None:
@@ -167,7 +167,7 @@ def install(args: Namespace, conda_args: Optional[List[str]] = None) -> None:
                 print(f"  - {req}")
         if from_pip:
             print("Would install from pip:")
-            for req in from_conda:
+            for req in from_pip:
                 print(f"  - {req}")
     else:
         if from_conda:
