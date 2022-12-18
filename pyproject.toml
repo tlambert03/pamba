@@ -1,6 +1,11 @@
+# https://peps.python.org/pep-0517/
 [build-system]
-requires = ["setuptools>=45", "wheel", "setuptools-scm>=6.2"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+# https://hatch.pypa.io/latest/config/metadata/
+[tool.hatch.version]
+source = "vcs"
 
 [project]
 name = "pamba"
@@ -16,6 +21,7 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
 ]
 dynamic = ["version"]
 dependencies = ["toml", "grayskull", "build", "yaspin"]
@@ -24,18 +30,13 @@ dependencies = ["toml", "grayskull", "build", "yaspin"]
 test = ["pytest>=6.0", "pytest-cov"]
 dev = [
     "black",
-    "flake8",
-    "flake8-docstrings",
-    "flake8-typing-imports",
     "ipython",
-    "isort",
     "mypy",
     "pre-commit",
-    "pydocstyle",
     "pytest-cov",
     "pytest",
     "rich",
-    "cruft",
+    "ruff",
 ]
 
 [project.urls]
@@ -47,27 +48,38 @@ repository = "https://github.com/tlambert03/pamba"
 [project.scripts]
 pamba = "pamba.cli:main"
 
-# https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
-[tool.setuptools]
-zip-safe = false
-include-package-data = true
-packages = { find = { where = ["src"], exclude = [] } }
 
+# https://github.com/charliermarsh/ruff
+[tool.ruff]
+line-length = 88
+target-version = "py38"
+src = ["src", "tests"]
+select = [
+    "E",  # style errors
+    "F",  # flakes
+    "D",  # pydocstyle
+    "I",  # isort
+    "UP", # pyupgrade
+    # "N",  # pep8-naming
+    "S",    # bandit
+    "C",    # comprehensions
+    "B",    # bugbear
+    "A001", # Variable shadowing a python builtin
+    "RUF",  # ruff-specific rules
+]
+extend-ignore = [
+    "D100", # Missing docstring in public module
+    "D107", # Missing docstring in __init__
+    "D203", # 1 blank line required before class docstring
+    "D212", # Multi-line docstring summary should start at the first line
+    "D213", # Multi-line docstring summary should start at the second line
+    "D413", # Missing blank line after last section
+    "D416", # Section name should end with a colon
+]
 
-# https://github.com/pypa/setuptools_scm/#pyprojecttoml-usage
-[tool.setuptools_scm]
+[tool.ruff.per-file-ignores]
+"tests/*.py" = ["D", "S101"]
 
-# https://pycqa.github.io/isort/docs/configuration/options.html
-[tool.isort]
-profile = "black"
-src_paths = ["src/pamba", "tests"]
-
-# http://www.pydocstyle.org/en/stable/usage.html
-[tool.pydocstyle]
-match_dir = "src/pamba"
-convention = "numpy"
-add_select = "D402,D415,D417"
-ignore = "D100,D213,D401,D413,D107"
 
 # https://docs.pytest.org/en/6.2.x/customize.html
 [tool.pytest.ini_options]
@@ -94,26 +106,13 @@ exclude_lines = [
     "except ImportError",
 ]
 
-# https://github.com/cruft/cruft
-[tool.cruft]
-skip = ["tests"]
 
 # https://github.com/mgedmin/check-manifest#configuration
 [tool.check-manifest]
 ignore = [
-    ".cruft.json",
-    ".flake8",
     ".github_changelog_generator",
     ".pre-commit-config.yaml",
     "tests/**/*",
     "tox.ini",
-    ""
+    "setup.py",
 ]
-
-# https://python-semantic-release.readthedocs.io/en/latest/configuration.html
-[tool.semantic_release]
-version_source = "tag_only"
-branch = "main"
-changelog_sections = "feature,fix,breaking,documentation,performance,chore,:boom:,:sparkles:,:children_crossing:,:lipstick:,:iphone:,:egg:,:chart_with_upwards_trend:,:ambulance:,:lock:,:bug:,:zap:,:goal_net:,:alien:,:wheelchair:,:speech_balloon:,:mag:,:apple:,:penguin:,:checkered_flag:,:robot:,:green_apple:,Other"
-# commit_parser=semantic_release.history.angular_parser
-build_command = "pip install build && python -m build"
