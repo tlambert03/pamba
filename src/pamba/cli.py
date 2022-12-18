@@ -172,6 +172,7 @@ def install(args: Namespace, conda_args: Optional[List[str]] = None) -> None:
             print("Would install from pip:")
             for req in from_pip:
                 print(f"  - {req}")
+            print("pip dry-run output:")
             pip_install([r.replace(" ", "") for r in from_pip], ["--dry-run"])
     else:
         if from_conda:
