@@ -165,10 +165,16 @@ def install(args: Namespace, conda_args: Optional[List[str]] = None) -> None:
             print("Would install from conda:")
             for req in from_conda:
                 print(f"  - {req}")
+            print("conda dry-run output:")
+            conda_args = conda_args or []
+            conda_args.extend(["--dry-run", "--no-banner"])
+            conda_install(from_conda, extra_args=conda_args)
         if from_pip:
             print("Would install from pip:")
             for req in from_pip:
                 print(f"  - {req}")
+            print("pip dry-run output:")
+            pip_install([r.replace(" ", "") for r in from_pip], ["--dry-run"])
     else:
         if from_conda:
             print("installing conda deps")
