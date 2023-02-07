@@ -112,7 +112,6 @@ def _hit_conda_api(args: Tuple[str, Sequence[str]]) -> Tuple[Optional[str], str]
 def check_conda_availability(
     requires: List[str], channels: Sequence[str] = ("conda-forge",)
 ) -> Tuple[List[str], List[str]]:
-
     with ThreadPoolExecutor() as exec:
         results = exec.map(_hit_conda_api, [(r, channels) for r in requires])
 
