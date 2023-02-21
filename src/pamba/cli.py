@@ -37,9 +37,10 @@ def _get_setuptools_requires_dist(srcdir: Path) -> List[str]:
     return requires
 
 
-def get_requires(srcdir: Union[str, Path]) -> List[str]:
+def _get_requires(srcdir: Union[str, Path]) -> List[str]:
     srcpath = Path(srcdir)
-    assert srcpath.exists(), f"Path doesn't exist: {srcdir}"
+    if not srcpath.exists():
+        raise ValueError(f"Path doesn't exist: {srcdir}")
     if (pyproject := srcpath / "pyproject.toml").exists():
         data = toml.load(pyproject)
         if "build-system" in data:
@@ -61,7 +62,7 @@ ENV = {
 }
 
 
-def clean_requires(requires: List[str], extras: Sequence[str] = ()) -> List[str]:
+def _clean_requires(requires: List[str], extras: Sequence[str] = ()) -> List[str]:
     reqs = []
     names = ENV.copy()
     for line in requires:
@@ -81,9 +82,8 @@ def clean_requires(requires: List[str], extras: Sequence[str] = ()) -> List[str]
     return reqs
 
 
-def condafy_reqs(requires: List[str]) -> List[str]:
-    """take a list of pip requires and return conda requires"""
-
+def _condafy_reqs(requires: List[str]) -> List[str]:
+    """Take a list of pip requires and return conda requires."""
     meta = {"name": "name", "requires_dist": requires}
     cfg = pypi.Configuration("n")
 
@@ -112,9 +112,9 @@ def _hit_conda_api(args: Tuple[str, Sequence[str]]) -> Tuple[Optional[str], str]
 def check_conda_availability(
     requires: List[str], channels: Sequence[str] = ("conda-forge",)
 ) -> Tuple[List[str], List[str]]:
-
-    with ThreadPoolExecutor() as exec:
-        results = exec.map(_hit_conda_api, [(r, channels) for r in requires])
+    """Return a tuple of available and unavailable packages."""
+    with ThreadPoolExecutor() as exec_:
+        results = exec_.map(_hit_conda_api, [(r, channels) for r in requires])
 
     avail = []
     bad = []
@@ -127,6 +127,7 @@ def check_conda_availability(
 
 
 def conda_install(requires: List[str], extra_args: Optional[List[str]] = None) -> None:
+    """Install `requires` using conda or mamba."""
     if extra_args is None:
         extra_args = []
     if shutil.which("mamba"):
@@ -139,12 +140,14 @@ def conda_install(requires: List[str], extra_args: Optional[List[str]] = None) -
 
 
 def pip_install(requires: List[str], extra_args: Optional[List[str]] = None) -> None:
+    """Install `requires` using pip."""
     if extra_args is None:
         extra_args = []
     run(["pip", "install"] + extra_args + requires)
 
 
 def install(args: Namespace, conda_args: Optional[List[str]] = None) -> None:
+    """Main install func."""
     extras = []
     requires = []
     pth = None
@@ -153,11 +156,11 @@ def install(args: Namespace, conda_args: Optional[List[str]] = None) -> None:
         pth = Path(_pth).expanduser().absolute()
         extras = [x.strip() for x in _extras.rstrip("]").split(",") if x.strip()]
         with yaspin(text=f"Collecting requirements for {pth.name} ...", color="yellow"):
-            requires = get_requires(pth)
+            requires = _get_requires(pth)
     with yaspin(text="Converting requirements to conda ...", color="yellow"):
         requires.extend(args.requirements)
-        requires = clean_requires(requires, extras)
-        requires = condafy_reqs(requires)
+        requires = _clean_requires(requires, extras)
+        requires = _condafy_reqs(requires)
     with yaspin(text="Checking conda availability ...", color="yellow"):
         from_conda, from_pip = check_conda_availability(requires)
     if args.dry_run:
@@ -188,6 +191,7 @@ def install(args: Namespace, conda_args: Optional[List[str]] = None) -> None:
 
 
 def parse_args() -> None:
+    """Parse arguments and call the appropriate function."""
     parser = ArgumentParser(description="pamba installs pip requirements from conda")
     subs = parser.add_subparsers()
     _install = subs.add_parser("install")
@@ -205,4 +209,5 @@ def parse_args() -> None:
 
 
 def main() -> None:
+    """Main entry point."""
     parse_args()
